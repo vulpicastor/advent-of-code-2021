@@ -1,20 +1,10 @@
 #/usr/bin/env python3
 
-# pylint: disable=unused-import
-import collections
-import functools
-import io
-import itertools
-import operator as op
-import re
-import timeit
-
 import numpy as np
 import aocd
 
 YEAR = 2021
 DAY = 4
-
 
 SHAPE = (5, 5)
 
@@ -26,55 +16,50 @@ def make_board(block):
         b[i, :] = np.array(list(map(int, l.split())))
     return b
 
+
 def check_win(board):
-    h, w = board.shape
-    for i in range(h):
-        if np.sum(board[i]) == SHAPE[1]:
-            return True
-    for j in range(w):
-        if np.sum(board[:, j]) == SHAPE[0]:
-            return True
-    return False
-    # return np.sum(np.diag(board)) == SHAPE[0] or np.sum(np.diag(np.rot90(board))) == SHAPE[1]
+    return (
+        np.any(np.sum(board, axis=0) == SHAPE[1]) or
+        np.any(np.sum(board, axis=1) == SHAPE[0])
+    )
+
 
 def advance_board(n, bingo, board):
     board[:] = np.logical_or(bingo==n, board)
-    # for i, j in itertools.product(range(SHAPE[0]), repeat=2):
-        # if bingo[i, j] == n:
-            # board[i, j] = True
+
 
 def calc_score(n, bingo, board):
     return np.sum(bingo[np.logical_not(board)]) * n
+
 
 def part_a(draws, bingos, boards):
     for n in draws:
         for bingo, board in zip(bingos, boards):
             advance_board(n, bingo, board)
-            print(board)
             if check_win(board):
-                print(bingo)
                 return calc_score(n, bingo, board)
+
 
 def part_b(draws, bingos, boards):
     last_win_bingo = None
     last_win_board = None
-    won = [False] * len(bingos)
     last_draw = 0
+    won = [False] * len(bingos)
     for n in draws:
         for i, (bingo, board) in enumerate(zip(bingos, boards)):
             if won[i]:
                 continue
             advance_board(n, bingo, board)
-            print(board)
             if check_win(board):
                 last_win_bingo = bingo
                 last_win_board = board
                 last_draw = n
                 won[i] = True
-                print(bingo)
     return calc_score(last_draw, last_win_bingo, last_win_board)
+
+
 def main():
-    data = """7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
+    test_data = """7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
 22 13 17 11  0
  8  2 23  4 24
@@ -94,19 +79,17 @@ def main():
 22 11 13  6  5
  2  0 12  3  7"""
     data = aocd.get_data(day=DAY, year=YEAR)
-    # print(data)
     inlist = data.split('\n\n')
     draws = list(map(int, inlist[0].split(',')))
-    # print(draws)
     bingos = list(map(make_board, inlist[1:]))
     boards = [np.zeros(SHAPE, dtype=bool) for _ in bingos]
-    # print(boards)
+
+    answer = part_a(draws, bingos, boards)
+    print(answer)
+    aocd.submit(answer, part='a', day=DAY, year=YEAR)
 
     answer = part_b(draws, bingos, boards)
     print(answer)
-
-    # aocd.submit(answer, part='a', day=DAY, year=YEAR)
-
     aocd.submit(answer, part='b', day=DAY, year=YEAR)
 
 
