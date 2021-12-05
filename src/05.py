@@ -1,66 +1,33 @@
 #/usr/bin/env python3
 
-# pylint: disable=unused-import
-import collections
-import functools
-import io
-import itertools
-import operator as op
-import re
-import timeit
-
 import numpy as np
 import aocd
 
 YEAR = 2021
 DAY = 5
 
+SHAPE = (1000, 1000)
 
 
-def part_a(lines):
-    field = np.zeros((1000, 1000), dtype=int)
-    for a, b in lines:
-        if not np.any(a == b):
-            continue
-        x, y = a
-        z, w = b
-        hlo = min(x, z)
-        hhi = max(x, z)
-        wlo = min(y, w)
-        whi = max(y, w)
-        field[hlo:hhi+1, wlo:whi+1] += 1
-    print(field)
-    return np.sum(field >= 2)
-
-def part_b(lines):
-    field = np.zeros((1000, 1000), dtype=int)
+def solve(lines, diag=False):
+    field = np.zeros(SHAPE, dtype=int)
     for a, b in lines:
         x, y = a
         z, w = b
+        hdir = np.sign(z - x) if x != z else 1
+        wdir = np.sign(w - y) if y != w else 1
         if np.any(a == b):
-            hlo = min(x, z)
-            hhi = max(x, z)
-            wlo = min(y, w)
-            whi = max(y, w)
-            field[hlo:hhi+1, wlo:whi+1] += 1
-        # elif abs(x-z) == abs(y-w):
-        else:
-            hdir = (z - x) // abs(z - x)
-            wdir = (w - y) // abs(w - y)
-            print(x, y, z, w, hdir, wdir)
+            # In the case x == z, the slice reduces to x:x+1:1 aka just x.
+            field[x:z+hdir:hdir, y:w+wdir:wdir] += 1
+        elif diag:
             for i, j in zip(range(x, z+hdir, hdir), range(y, w+wdir, wdir)):
                 field[i, j] += 1
-    print(field)
     return np.sum(field >= 2)
 
+
 def parse_line(line):
-    a, b = line.split(' -> ')
-    x, y = a.split(',')
-    z, w = b.split(',')
-    return [
-        np.array([int(x), int(y)]),
-        np.array([int(z), int(w)]),
-    ]
+    return [np.array([int(x) for x in a.split(',')]) for a in line.split(' -> ')]
+
 
 def main():
     data = """0,9 -> 5,9
@@ -75,13 +42,14 @@ def main():
 5,5 -> 8,2"""
     data = aocd.get_data(day=DAY, year=YEAR)
     inlist = data.split('\n')
-    indata = list(map(parse_line, inlist))
+    inlines = list(map(parse_line, inlist))
 
-    answer = part_b(indata)
+    answer = solve(inlines)
     print(answer)
+    aocd.submit(answer, part='a', day=DAY, year=YEAR)
 
-    # aocd.submit(answer, part='a', day=DAY, year=YEAR)
-
+    answer = solve(inlines, True)
+    print(answer)
     aocd.submit(answer, part='b', day=DAY, year=YEAR)
 
 
