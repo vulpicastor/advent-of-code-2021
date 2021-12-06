@@ -1,7 +1,5 @@
 #/usr/bin/env python3
 
-import collections
-
 import aocd
 
 YEAR = 2021
@@ -9,10 +7,10 @@ DAY = 6
 
 
 def evolve(counts, days):
-    new_counts = collections.deque(counts)
-    for _ in range(days):
-        new_counts.append(new_counts.popleft())
-        new_counts[6] += new_counts[8]
+    new_counts = counts.copy()
+    for i in range(days):
+        start = i % 9
+        new_counts[(start + 7) % 9] += new_counts[start]
     return new_counts
 
 
@@ -24,6 +22,7 @@ def main():
     for i in inlist:
         counts[i] += 1
 
+    print(counts)
     answer = sum(evolve(counts, 80))
     print(answer)
     aocd.submit(answer, part='a', day=DAY, year=YEAR)
