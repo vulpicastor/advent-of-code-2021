@@ -1,39 +1,19 @@
 #/usr/bin/env python3
 
-# pylint: disable=unused-import
 import collections
-import functools
-import io
-import itertools
-import operator as op
-import re
-import timeit
 
-import numpy as np
 import aocd
 
 YEAR = 2021
 DAY = 6
 
 
-
-def evolve(inlist):
-    outlist = []
-    for i in inlist:
-        if i == 0:
-            outlist.append(6)
-            outlist.append(8)
-        else:
-            outlist.append(i-1)
-    return outlist
-
-def evolve2(counts):
-    outlist = [0]*9
-    outlist[8] = counts[0]
-    outlist[6] = counts[0]
-    for i in range(1, 9):
-        outlist[i-1] += counts[i]
-    return outlist
+def evolve(counts, days):
+    new_counts = collections.deque(counts)
+    for _ in range(days):
+        new_counts.append(new_counts.popleft())
+        new_counts[6] += new_counts[8]
+    return new_counts
 
 
 def main():
@@ -44,20 +24,11 @@ def main():
     for i in inlist:
         counts[i] += 1
 
-    outlist = inlist
-    for _ in range(80):
-        outlist = evolve(outlist)
-        # print(outlist)
-    print(outlist)
-    answer = len(outlist)
+    answer = sum(evolve(counts, 80))
     print(answer)
-    # aocd.submit(answer, part='a', day=DAY, year=YEAR)
+    aocd.submit(answer, part='a', day=DAY, year=YEAR)
 
-    outcount = counts
-    for _ in range(256):
-        outcount = evolve2(outcount)
-        print(outcount)
-    answer = sum(outcount)
+    answer = sum(evolve(counts, 256))
     print(answer)
     aocd.submit(answer, part='b', day=DAY, year=YEAR)
 
