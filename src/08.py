@@ -1,35 +1,34 @@
 #!/usr/bin/env python3
 
-# pylint: disable=unused-import
-import collections
-import functools
-import io
-import itertools
-import operator as op
-import re
-import timeit
-
-import numpy as np
 import aocd
 
 YEAR = 2021
 DAY = 8
 
 DIGIT_SEGS = {
-    0: str('abcefg'),
-    1: str('cf'),
-    2: str('acdeg'),
-    3: str('acdfg'),
-    4: str('bcdf'),
-    5: str('abdfg'),
-    6: str('abdefg'),
-    7: str('acf'),
-    8: str('abcdefg'),
-    9: str('abcdfg'),
+    0: 'abcefg',
+    1: 'cf',
+    2: 'acdeg',
+    3: 'acdfg',
+    4: 'bcdf',
+    5: 'abdfg',
+    6: 'abdefg',
+    7: 'acf',
+    8: 'abcdefg',
+    9: 'abcdfg',
 }
 SEG_DIGITS = {v: k for k, v in DIGIT_SEGS.items()}
 
-# print(DIGIT_SEGS[2] & DIGIT_SEGS[3] & DIGIT_SEGS[5])
+
+def part_a(inlist):
+    count = 0
+    for _, b in inlist:
+        for i in b:
+            n = len(i)
+            if n in (2, 3, 4, 7):
+                count += 1
+    return count
+
 
 def decode_output(pair):
     inhalf, outhalf = pair
@@ -61,18 +60,18 @@ def decode_output(pair):
     c = one - f
     e = eight - a - b - c - d - f - g
     mapping = {
-        'a': list(a)[0],
-        'b': list(b)[0],
-        'c': list(c)[0],
-        'd': list(d)[0],
-        'e': list(e)[0],
-        'f': list(f)[0],
-        'g': list(g)[0],
+        list(a)[0]: 'a',
+        list(b)[0]: 'b',
+        list(c)[0]: 'c',
+        list(d)[0]: 'd',
+        list(e)[0]: 'e',
+        list(f)[0]: 'f',
+        list(g)[0]: 'g',
     }
-    rev_mapping = {v: k for k, v in mapping.items()}
-    outlist = [SEG_DIGITS[''.join(sorted(map(lambda x: rev_mapping[x], s)))] for s in outhalf]
-    print(outlist)
-    return int(''.join(map(str, outlist)))
+    return sum(
+        10**i * SEG_DIGITS[''.join(sorted(map(lambda x: mapping[x], s)))]
+        for i, s in enumerate(reversed(outhalf))
+    )
 
 
 def main():
@@ -88,24 +87,13 @@ egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb
 gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce"""
     data = aocd.get_data(day=DAY, year=YEAR)
     inlist = [[a.split() for a in l.split(' | ')] for l in data.split('\n')]
-    # print(inlist)
-    count = 0
-    for _, b in inlist:
-        for i in b:
-            n = len(i)
-            if n == 2 or n == 4 or n == 3 or n == 7:
-                count += 1
-    print(count)
-    answer = count
-    # inlist = []
-    # for l in inlines:
-        # a, b = l.split(' | ')
-        # inlist.append()
+
+    answer = part_a(inlist)
+    print(answer)
+    aocd.submit(answer, part='a', day=DAY, year=YEAR)
+
     answer = sum(map(decode_output, inlist))
     print(answer)
-
-    # aocd.submit(answer, part='a', day=DAY, year=YEAR)
-
     aocd.submit(answer, part='b', day=DAY, year=YEAR)
 
 
