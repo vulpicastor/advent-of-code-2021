@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
 
-# pylint: disable=unused-import
-import collections
-import functools
-import io
-import itertools
-import operator as op
-import re
-import timeit
-
 import numpy as np
 import aocd
 
@@ -55,7 +46,7 @@ def paren(s):
             score += RESCORE[k]
     else:
         score = None
-    return score
+    return c, score
 
 def main():
     data = """[({(<(())[]>[[{[]{<()<>>
@@ -70,16 +61,13 @@ def main():
 <{([{{}}[<[[[<>{}]]]>[]]"""
     data = aocd.get_data(day=DAY, year=YEAR)
     inlist = data.split('\n')
-    bad = list(map(paren, inlist))
-    print(bad)
-    # answer = sum(SCORE[b] for b in bad)
-    # print(answer)
-
-    answer = int(np.median([x for x in bad if x is not None]))
+    bad, answer_b = list(zip(*map(paren, inlist)))
+    answer = sum(SCORE[b] for b in bad)
     print(answer)
+    aocd.submit(answer, part='a', day=DAY, year=YEAR)
 
-    # aocd.submit(answer, part='a', day=DAY, year=YEAR)
-
+    answer = int(np.median([x for x in answer_b if x is not None]))
+    print(answer)
     aocd.submit(answer, part='b', day=DAY, year=YEAR)
 
 
