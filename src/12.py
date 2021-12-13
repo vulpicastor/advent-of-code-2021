@@ -10,27 +10,7 @@ YEAR = 2021
 DAY = 12
 
 
-def recursive_walk(node, dest, visited=None):
-    if node is dest:
-        return 1
-    if visited is None:
-        visited = {node}
-    path_list = []
-    for neighbor in node:
-        if neighbor in visited:
-            continue
-        if neighbor.k.islower():
-            visited.add(neighbor)
-        num_child_path = recursive_walk(neighbor, dest, visited)
-        if neighbor.k.islower():
-            visited.remove(neighbor)
-        if num_child_path > 0:
-            path_list.append(num_child_path)
-    if path_list:
-        return sum(path_list)
-    return 0
-
-def recursive_walk_2(node, dest, visited=None, can_visit_twice=True):
+def recursive_walk(node, dest, visit_limit=1, visited=None):
     if node is dest:
         return 1
     if visited is None:
@@ -38,19 +18,15 @@ def recursive_walk_2(node, dest, visited=None, can_visit_twice=True):
         visited[node] = 1000
     path_list = []
     for neighbor in node:
-        twice = can_visit_twice
+        new_visit_limit = visit_limit
         if neighbor.k.islower():
-            if visited[neighbor] >= 2:
+            if visited[neighbor] >= visit_limit:
                 continue
-            if visited[neighbor] >= 1:
-                if not twice:
-                    continue
-                twice = False
+            if visited[neighbor] == visit_limit - 1:
+                new_visit_limit = max(visit_limit - 1, 1)
         visited[neighbor] += 1
-        num_child_path = recursive_walk_2(neighbor, dest, visited, twice)
+        num_child_path = recursive_walk(neighbor, dest, new_visit_limit, visited)
         visited[neighbor] -= 1
-        if can_visit_twice:
-            twice = None
         path_list.append(num_child_path)
     return sum(path_list)
 
@@ -96,11 +72,11 @@ start-RW"""
 
     cave_graph = tulun.Graph(edges)
 
-    answer = recursive_walk(cave_graph['start'], cave_graph['end'])
+    answer = recursive_walk(cave_graph['start'], cave_graph['end'], visit_limit=1)
     print(answer)
     aocd.submit(answer, part='a', day=DAY, year=YEAR)
 
-    answer = recursive_walk_2(cave_graph['start'], cave_graph['end'])
+    answer = recursive_walk(cave_graph['start'], cave_graph['end'], visit_limit=2)
     print(answer)
     aocd.submit(answer, part='b', day=DAY, year=YEAR)
 
