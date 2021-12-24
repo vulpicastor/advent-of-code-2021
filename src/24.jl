@@ -1,6 +1,7 @@
 #!/usr/bin/julia
 
 using ProgressBars
+using Profile
 
 const OP_MAP = Dict(
     "add" => "+",
@@ -12,7 +13,7 @@ const OP_MAP = Dict(
 
 function compile(instlist)
     linelist = String[]
-    push!(linelist, "function monad_func(inputs::AbstractVector{T}) where T <: Integer")
+    push!(linelist, "function (inputs::AbstractVector{T}) where T <: Integer")
 
     # push!(linelist, "rev_inputs = Int[]")
     # push!(linelist, "bigend, digit = divrem(n, 10)")
@@ -23,10 +24,10 @@ function compile(instlist)
     # push!(linelist, "inputs = reverse(rev_inputs)")
 
     # push!(linelist, "regs = zeros(T, 4)")
-    push!(linelist, "w = zero(T)")
-    push!(linelist, "x = zero(T)")
-    push!(linelist, "y = zero(T)")
-    push!(linelist, "z = zero(T)")
+    push!(linelist, "w = 0")
+    push!(linelist, "x = 0")
+    push!(linelist, "y = 0")
+    push!(linelist, "z = 0")
     # push!(linelist, "next = iterate(inputs)")
     push!(linelist, "input_i = 1")
     push!(linelist, "input_max = length(inputs)")
@@ -55,40 +56,50 @@ function compile(instlist)
 end
 
 
-function main()
+function run_func(monad_func, num_iter=9^14)
+    works = 0
+    digits = repeat([9], 14)
+    # for _ in 1:num_iter #ProgressBar(1:num_iter)
+    for _ in ProgressBar(1:cld(num_iter, 9^8))
+        finished = true
+        for _ in 1:9^8
+            finished = true
+            # @info [reverse(digits)...]
+            # @info digits
+            w, x, y, z = monad_func(digits)
+            # if z == 0
+                # @info digits
+                # works = sum(d * 10^(14-i) for (i, d) in enumerate(digits))
+                # break
+            # end
+            for di in 14:-1:1
+                next_d = digits[di] - 1
+                if next_d > 0
+                    digits[di] = next_d
+                    finished = false
+                    break
+                end
+                digits[di] = 9
+            end
+            if finished
+                break
+            end
+            # regs = monad_func([digits...])
+            # @info regs
+        end
+        if finished
+            break
+        end
+    end
+    return works
+end
+
+function make_func()
     lines = open("input/24.txt", "r") do io
         map(strip, readlines(io))
     end
     monad_expr = compile(lines)
-    eval(monad_expr)
-    works = 0
-    for digits in ProgressBar(Iterators.product(
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-        9:-1:1,
-    ))
-        # @info [reverse(digits)...]
-        w, x, y, z = @Base.invokelatest monad_func([reverse(digits)...])
-        if z == 0
-            @info digits
-            works = sum(d * 10^(i-1) for (i, d) in enumerate(digits))
-            break
-        end
-        # regs = monad_func([digits...])
-        # @info regs
-    end
-    @info works
+    monad_func = eval(monad_expr)
     return monad_expr, monad_func
 
 
@@ -100,5 +111,9 @@ function main()
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    main()
+    _, monad_func = make_func()
+    @time run_func(monad_func, 10^6)
+    # Profile.clear_malloc_data()
+    @timev run_func(monad_func, 9^14)
+    # Profile.print()
 end
