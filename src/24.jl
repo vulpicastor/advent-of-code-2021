@@ -58,7 +58,7 @@ end
 
 function run_func(monad_func, num_iter=9^14)
     works = 0
-    digits = repeat([9], 14)
+    digits = repeat([1], 14)
     # for _ in 1:num_iter #ProgressBar(1:num_iter)
     for _ in ProgressBar(1:cld(num_iter, 9^8))
         finished = true
@@ -67,19 +67,20 @@ function run_func(monad_func, num_iter=9^14)
             # @info [reverse(digits)...]
             # @info digits
             w, x, y, z = monad_func(digits)
-            # if z == 0
-                # @info digits
-                # works = sum(d * 10^(14-i) for (i, d) in enumerate(digits))
-                # break
-            # end
+            if z == 0
+                @info digits
+                works = sum(d * 10^(14-i) for (i, d) in enumerate(digits))
+                finished = true
+                break
+            end
             for di in 14:-1:1
-                next_d = digits[di] - 1
-                if next_d > 0
+                next_d = digits[di] + 1
+                if next_d <= 9
                     digits[di] = next_d
                     finished = false
                     break
                 end
-                digits[di] = 9
+                digits[di] = 1
             end
             if finished
                 break
